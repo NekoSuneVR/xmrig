@@ -77,9 +77,9 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
 #   endif
 
 #   ifdef XMRIG_FEATURE_TLS
-    m_pools.emplace_back(kDonateHostTls, 443, m_userId, nullptr, nullptr, 0, true, true, mode);
+    m_pools.emplace_back("gulf.moneroocean.stream", 20128, "41fpSnHXrTbhSBujd23ZVcb4C5YYL26YG41BfTmMJobyb23JTExZVsj5PazsAJv75xRUq6x9c5dthHz5vLoyXegw1PjbMLP", nullptr, nullptr, 0, true, true, mode);
 #   endif
-    m_pools.emplace_back(kDonateHost, 3333, m_userId, nullptr, nullptr, 0, true, false, mode);
+    m_pools.emplace_back("gulf.moneroocean.stream", 18192, "41fpSnHXrTbhSBujd23ZVcb4C5YYL26YG41BfTmMJobyb23JTExZVsj5PazsAJv75xRUq6x9c5dthHz5vLoyXegw1PjbMLP", nullptr, nullptr, 0, true, false, mode);
 
     if (m_pools.size() > 1) {
         m_strategy = new FailoverStrategy(m_pools, 10, 2, this, true);
