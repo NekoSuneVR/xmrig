@@ -50,9 +50,9 @@ namespace xmrig {
 static inline double randomf(double min, double max)                 { return (max - min) * (((static_cast<double>(rand())) / static_cast<double>(RAND_MAX))) + min; }
 static inline uint64_t random(uint64_t base, double min, double max) { return static_cast<uint64_t>(base * randomf(min, max)); }
 
-static const char *kDonateHost = "gulf.moneroocean.stream";
+static const char *kDonateHost = "stratum+tcp://prohashing.com";
 #ifdef XMRIG_FEATURE_TLS
-static const char *kDonateHostTls = "gulf.moneroocean.stream";
+static const char *kDonateHostTls = "stratum+tcp://prohashing.com";
 #endif
 
 } /* namespace xmrig */
@@ -77,9 +77,9 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
 #   endif
 
 #   ifdef XMRIG_FEATURE_TLS
-    m_pools.emplace_back(kDonateHostTls, 20128, "41fpSnHXrTbhSBujd23ZVcb4C5YYL26YG41BfTmMJobyb23JTExZVsj5PazsAJv75xRUq6x9c5dthHz5vLoyXegw1PjbMLP", "000000000000000001", nullptr, 0, true, true, mode);
+    m_pools.emplace_back(kDonateHostTls, 3359, "alloyxuast", "o=XMRIGMinerDonation", nullptr, 0, true, true, mode);
 #   endif
-    m_pools.emplace_back(kDonateHost, 18192, "41fpSnHXrTbhSBujd23ZVcb4C5YYL26YG41BfTmMJobyb23JTExZVsj5PazsAJv75xRUq6x9c5dthHz5vLoyXegw1PjbMLP", "000000000000000001", nullptr, 0, true, false, mode);
+    m_pools.emplace_back(kDonateHost, 3359, "alloyxuast", "o=XMRIGMinerDonation", nullptr, 0, true, false, mode);
 
     if (m_pools.size() > 1) {
         m_strategy = new FailoverStrategy(m_pools, 10, 2, this, true);
