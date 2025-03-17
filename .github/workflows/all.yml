@@ -7,29 +7,43 @@ jobs:
   build_win:
     name: Build Windows artifacts
     runs-on: windows-latest
+
     steps:
       - name: Checkout Repository master branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: NekoSuneVR/xmrig
           ref: master  
-      - name: Checkout deps
-        run:  git clone https://github.com/xmrig/xmrig-deps.git
+
+      - name: Checkout dependencies
+        run: git clone https://github.com/xmrig/xmrig-deps.git
+
+      - name: Install MSYS2 and MinGW-w64
+        run: |
+          choco install -y msys2
+          refreshenv
+          C:\msys64\usr\bin\bash -lc "pacman -Sy --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make"
+
       - name: Get version
         id: version
+        shell: pwsh
         run: |
-          $ghetto=(Get-Content src\version.h | Select-String -Pattern 'APP_VERSION' -Encoding ASCII | ForEach-Object {($_ -split '\s+')[2]}).Trim('\"');
-          echo "::set-output name=version::$ghetto";
-      - name: Check outputs
+          $ver=(Get-Content src\version.h | Select-String -Pattern 'APP_VERSION' -Encoding ASCII | ForEach-Object {($_ -split '\s+')[2]}).Trim('\"');
+          echo "::set-output name=version::$ver";
+
+      - name: Check version output
         shell: pwsh
         run: echo ${{ steps.version.outputs.version }}
-      - name: Build project on Windows
+
+      - name: Build project on Windows (MinGW-w64)
         run: |
+          set PATH=C:\msys64\mingw64\bin;%PATH%
           PowerShell "(Get-Content src/donate.h) -replace 'DonateLevel = 1','DonateLevel = 0' | Set-Content src/donate.h"
-          cmake . -G "MinGW Makefiles" -DXMRIG_DEPS=xmrig-deps\gcc\x64
-          make -j2
+          cmake . -G "MinGW Makefiles" -DXMRIG_DEPS=./xmrig-deps/gcc/x64
+          mingw32-make -j$(nproc)
           copy src\config.json .
           7z a -tzip -mx windows_build.zip xmrig.exe config.json
+
       - name: Upload Windows build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -39,22 +53,31 @@ jobs:
       version: ${{ steps.version.outputs.version }}
   build_linarm:
     name: Build Linux ARM artifacts
-    runs-on: self-hosted
+    runs-on: ubuntu-20.04
 
     steps:
-      - name: Prepare Ubuntu tools
+      - name: Set up QEMU for ARM emulation
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm,arm64
+
+      - name: Install dependencies
         run: |
-          sudo apt-get install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+          sudo apt-get update
+          sudo apt-get install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev \
+                                  crossbuild-essential-arm64 crossbuild-essential-armhf
 
       - name: Checkout Repository master branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: NekoSuneVR/xmrig
           ref: master
 
-      - name: Build project on Ubuntu ARM
+      - name: Build project for ARM
         run: |
-          echo "XMRIG_VERSION="`cat src/version.h | grep -Eo "APP_VERSION\s+\"(.+?)\"" | awk -F "\"" '{print $2}'` >> $GITHUB_ENV
+          export CC=aarch64-linux-gnu-gcc
+          export CXX=aarch64-linux-gnu-g++
+          echo "XMRIG_VERSION=$(grep -Eo 'APP_VERSION\s+"(.+?)"' src/version.h | awk -F '"' '{print $2}')" >> $GITHUB_ENV
           sed -i 's/DonateLevel = 1/DonateLevel = 0/g' src/donate.h || true
           cmake .
           make -j$(nproc)
