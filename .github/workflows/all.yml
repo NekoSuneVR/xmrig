@@ -96,60 +96,60 @@ jobs:
     needs: [build_win, build_linamd, build_macos]
     name: Create release and upload artifacts
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check outputs other job
+      - name: Check outputs from other jobs
         run: |
-          echo "needs.<job_id>.outputs.<output_name>"
-          echo "${{ needs.build_win.outputs.version }}"
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ needs.build_win.outputs.version }}
-          release_name: Release ${{ needs.build_win.outputs.version }}
-          draft: false
-          prerelease: false
+          echo "Windows Build Version: ${{ needs.build_win.outputs.version }}"
+
       - name: Set version
         id: version
-        run: echo ::set-output name=VERSION::${GITHUB_REF:10}
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
       - name: Download Windows build artifact
         uses: actions/download-artifact@v4
         with:
           name: windows_build
+
       - name: Download Linux AMD build artifact
         uses: actions/download-artifact@v4
         with:
           name: ubuntu_buildamd
+
       - name: Download MacOS build artifact
         uses: actions/download-artifact@v4
         with:
           name: macos_build
-      - name: Upload Windows build release asset
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Save Release Notes to Output
+        id: save_release_notes
+        run: |
+          echo "### Release Notes for v${{ env.VERSION }}" > release_notes.txt
+          echo "Download Links:" >> release_notes.txt
+          echo "- Windows: xmrig-${{ env.VERSION }}-win64.zip" >> release_notes.txt
+          echo "- Linux AMD: xmrig-${{ env.VERSION }}-linAMD64.tar.gz" >> release_notes.txt
+          echo "- macOS: xmrig-${{ env.VERSION }}-mac64.tar.gz" >> release_notes.txt
+        shell: bash
+
+      - name: Upload Release Notes
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: windows_build/windows_build.zip
-          asset_name: xmrig-${{ needs.build_win.outputs.version }}-win64.zip
-          asset_content_type: application/zip
-      - name: Upload Ubuntu AMD build release asset
-        uses: actions/upload-release-asset@v1.0.1
+          name: xmrig-${{ env.VERSION }}-release-notes
+          path: release_notes.txt
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: ncipollo/release-action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ubuntu_buildamd/ubuntu_buildamd.tar.gz
-          asset_name: xmrig-${{ needs.build_win.outputs.version }}-linAMD64.tar.gz
-          asset_content_type: application/zip
-      - name: Upload MacOS build release asset
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: macos_build/macos_build.tar.gz
-          asset_name: xmrig-${{ needs.build_win.outputs.version }}-mac64.tar.gz
-          asset_content_type: application/zip
+          tag: v${{ env.VERSION }}
+          name: v${{ env.VERSION }}
+          artifacts: |
+            windows_build/windows_build.zip
+            ubuntu_buildamd/ubuntu_buildamd.tar.gz
+            macos_build/macos_build.tar.gz
+          bodyFile: release_notes.txt
+          allowUpdates: true
+          prerelease: false
+          draft: false
