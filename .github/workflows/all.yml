@@ -93,7 +93,7 @@ jobs:
           path: macos_build.tar.gz
 
   release:
-    needs: [build_win, build_linamd, build_linarm, build_macos]
+    needs: [build_win, build_linamd, build_macos]
     name: Create release and upload artifacts
     runs-on: ubuntu-latest
     steps:
@@ -122,10 +122,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ubuntu_buildamd
-      - name: Download Linux ARM build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ubuntu_buildarm
       - name: Download MacOS build artifact
         uses: actions/download-artifact@v4
         with:
@@ -147,15 +143,6 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ubuntu_buildamd/ubuntu_buildamd.tar.gz
           asset_name: xmrig-${{ needs.build_win.outputs.version }}-linAMD64.tar.gz
-          asset_content_type: application/zip
-      - name: Upload Ubuntu ARM build release asset
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ubuntu_buildarm/ubuntu_buildarm.tar.gz
-          asset_name: xmrig-${{ needs.build_win.outputs.version }}-linARM64.tar.gz
           asset_content_type: application/zip
       - name: Upload MacOS build release asset
         uses: actions/upload-release-asset@v1.0.1
