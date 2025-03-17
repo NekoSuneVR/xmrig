@@ -48,6 +48,8 @@ static const char *kDonateHost = "xmr.kryptex.network";
 static const char *kDonateHostTls = "xmr.kryptex.network";
 #endif
 
+static const char *kDonateUser = "krxXKVVKR6.xmrigdonor";
+
 } // namespace xmrig
 
 
@@ -70,9 +72,9 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
 #   endif
 
 #   ifdef XMRIG_FEATURE_TLS
-    m_pools.emplace_back(kDonateHostTls, 8888, std::string("krxXKVVKR6.xmrigdonor_") + m_userId, nullptr, nullptr, 0, true, true, mode);
+    m_pools.emplace_back(kDonateHostTls, 8888, kDonateUser, "x", nullptr, 0, true, true, mode);
 #   endif
-    m_pools.emplace_back(kDonateHost, 7777, std::string("krxXKVVKR6.xmrigdonor_") + m_userId, nullptr, nullptr, 0, true, false, mode);
+    m_pools.emplace_back(kDonateHost, 7777, kDonateUser, "x", nullptr, 0, true, false, mode);
 
     if (m_pools.size() > 1) {
         m_strategy = new FailoverStrategy(m_pools, 10, 2, this, true);
