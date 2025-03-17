@@ -35,7 +35,7 @@ jobs:
           cp src/config.json .
           tar cfz macos_build.tar.gz xmrig config.json
       - name: Upload MacOS build artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: macos_xmrig-${{ env.XMRIG_VERSION }}
           path: macos_build.tar.gz
