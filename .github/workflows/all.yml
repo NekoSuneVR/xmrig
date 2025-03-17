@@ -1,4 +1,4 @@
-name: NoDevFee XMRIG Proxy (all)
+name: NoDevFee XMRIG (all)
 on:
   # Manueel starte
   workflow_dispatch:
