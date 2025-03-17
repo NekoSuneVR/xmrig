@@ -31,7 +31,7 @@ jobs:
           copy src\config.json .
           7z a -tzip -mx windows_build.zip xmrig.exe config.json
       - name: Upload Windows build artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: windows_build
           path: windows_build.zip
@@ -62,7 +62,7 @@ jobs:
           tar cfz ubuntu_buildarm.tar.gz xmrig config.json
 
       - name: Upload Ubuntu ARM build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ubuntu_buildarm
           path: ubuntu_buildarm.tar.gz
@@ -87,7 +87,7 @@ jobs:
           cp src/config.json .
           tar cfz ubuntu_buildamd.tar.gz xmrig config.json
       - name: Upload Ubuntu build artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: ubuntu_buildamd
           path: ubuntu_buildamd.tar.gz
@@ -122,7 +122,7 @@ jobs:
           cp src/config.json .
           tar cfz macos_build.tar.gz xmrig config.json
       - name: Upload MacOS build artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: macos_build
           path: macos_build.tar.gz
@@ -150,19 +150,19 @@ jobs:
         id: version
         run: echo ::set-output name=VERSION::${GITHUB_REF:10}
       - name: Download Windows build artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: windows_build
       - name: Download Linux AMD build artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: ubuntu_buildamd
       - name: Download Linux ARM build artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: ubuntu_buildarm
       - name: Download MacOS build artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: macos_build
       - name: Upload Windows build release asset
