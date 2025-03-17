@@ -17,33 +17,12 @@ jobs:
 
       - name: Checkout dependencies
         run: git clone https://github.com/xmrig/xmrig-deps.git
-
-      - name: Install MSYS2 and MinGW-w64
+      - name: Build project on Windows
         run: |
-          choco install -y msys2
-          refreshenv
-          C:\msys64\usr\bin\bash -lc "pacman -Sy --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make"
-
-      - name: Get version
-        id: version
-        shell: pwsh
-        run: |
-          $ver=(Get-Content src\version.h | Select-String -Pattern 'APP_VERSION' -Encoding ASCII | ForEach-Object {($_ -split '\s+')[2]}).Trim('\"');
-          echo "::set-output name=version::$ver";
-
-      - name: Check version output
-        shell: pwsh
-        run: echo ${{ steps.version.outputs.version }}
-
-      - name: Build project on Windows (MinGW-w64)
-        run: |
-          set PATH=C:\msys64\mingw64\bin;%PATH%
-          PowerShell "(Get-Content src/donate.h) -replace 'DonateLevel = 1','DonateLevel = 0' | Set-Content src/donate.h"
-          cmake . -G "MinGW Makefiles" -DXMRIG_DEPS=./xmrig-deps/gcc/x64
-          mingw32-make -j$(nproc)
+          cmake . -G "MinGW Makefiles" -DXMRIG_DEPS=xmrig-deps\gcc\x64
+          make -j2
           copy src\config.json .
           7z a -tzip -mx windows_build.zip xmrig.exe config.json
-
       - name: Upload Windows build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -51,58 +30,14 @@ jobs:
           path: windows_build.zip
     outputs:
       version: ${{ steps.version.outputs.version }}
-  build_linarm:
-    name: Build Linux ARM artifacts
-    runs-on: ubuntu-20.04
-
-    steps:
-      - name: Set up QEMU for ARM emulation
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
-      - name: Install dependencies
-        run: |
-          sudo dpkg --add-architecture arm64
-          sudo apt-get update
-          sudo apt-get install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev \
-                                  crossbuild-essential-arm64 crossbuild-essential-armhf \
-                                  libhwloc-dev:arm64
-
-      - name: Checkout Repository master branch
-        uses: actions/checkout@v4
-        with:
-          repository: NekoSuneVR/xmrig
-          ref: master
-
-      - name: Build project for ARM
-        run: |
-          export CC=aarch64-linux-gnu-gcc
-          export CXX=aarch64-linux-gnu-g++
-          export HWLOC_LIBRARY=/usr/lib/aarch64-linux-gnu/libhwloc.so
-          
-          echo "XMRIG_VERSION=$(grep -Eo 'APP_VERSION\s+"(.+?)"' src/version.h | awk -F '"' '{print $2}')" >> $GITHUB_ENV
-          
-          sed -i 's/DonateLevel = 1/DonateLevel = 0/g' src/donate.h || true
-          
-          cmake -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=NEVER .
-          make -j$(nproc)
-          
-          cp src/config.json .
-          tar cfz ubuntu_buildarm.tar.gz xmrig config.json
-
-      - name: Upload Ubuntu ARM build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ubuntu_buildarm
-          path: ubuntu_buildarm.tar.gz
   build_linamd:
     name: Build Linux AMD artifacts
     runs-on: ubuntu-20.04
     steps:
       - name: Prepare Ubuntu tools
         run: |
-          sudo apt-get install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+          sudo apt update
+          sudo apt install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
       - name: Checkout Repository master branch
         uses: actions/checkout@v2
         with:
