@@ -24,7 +24,7 @@ jobs:
           cmake .. -DXMRIG_DEPS=scripts/deps -DBUILD_STATIC=ON
           make -j$(nproc)
       - name: Store generated file
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: xmrig-${{ env.XMRIG_VERSION }}
           path: build/xmrig
