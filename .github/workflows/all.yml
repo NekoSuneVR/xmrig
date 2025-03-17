@@ -59,13 +59,15 @@ jobs:
       - name: Set up QEMU for ARM emulation
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: arm,arm64
+          platforms: arm64
 
       - name: Install dependencies
         run: |
+          sudo dpkg --add-architecture arm64
           sudo apt-get update
           sudo apt-get install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev \
-                                  crossbuild-essential-arm64 crossbuild-essential-armhf
+                                  crossbuild-essential-arm64 crossbuild-essential-armhf \
+                                  libhwloc-dev:arm64
 
       - name: Checkout Repository master branch
         uses: actions/checkout@v4
@@ -77,10 +79,15 @@ jobs:
         run: |
           export CC=aarch64-linux-gnu-gcc
           export CXX=aarch64-linux-gnu-g++
+          export HWLOC_LIBRARY=/usr/lib/aarch64-linux-gnu/libhwloc.so
+          
           echo "XMRIG_VERSION=$(grep -Eo 'APP_VERSION\s+"(.+?)"' src/version.h | awk -F '"' '{print $2}')" >> $GITHUB_ENV
+          
           sed -i 's/DonateLevel = 1/DonateLevel = 0/g' src/donate.h || true
-          cmake .
+          
+          cmake -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=NEVER .
           make -j$(nproc)
+          
           cp src/config.json .
           tar cfz ubuntu_buildarm.tar.gz xmrig config.json
 
