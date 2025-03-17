@@ -7,7 +7,6 @@ jobs:
   build_win:
     name: Build Windows artifacts
     runs-on: windows-latest
-
     steps:
       - name: Checkout Repository master branch
         uses: actions/checkout@v4
@@ -30,6 +29,7 @@ jobs:
           path: windows_build.zip
     outputs:
       version: ${{ steps.version.outputs.version }}
+      
   build_linamd:
     name: Build Linux AMD artifacts
     runs-on: ubuntu-20.04
