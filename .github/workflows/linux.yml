@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Repository master branch
         uses: actions/checkout@v2
         with:
-          repository: NekoSuneVR/xmrig-proxy
+          repository: NekoSuneVR/xmrig
       - name: Build
         run: |
           apk add git make cmake libstdc++ gcc g++ automake libtool autoconf linux-headers
